@@ -24,9 +24,9 @@ object main {
     override def process(watchedEvent: WatchedEvent): Unit =
       System.out.println(watchedEvent.toString)
   }
-  val zk = new ZooKeeper(zknode, 5000, watcher)
 
   def ExchangeRate(i: String, r: String, time: Date): BigDecimal = {
+    val zk = new ZooKeeper(zknode, 5000, watcher)
     val start = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss").parse("2018-1-1 00:00:00")
     val diff = (time.getTime - start.getTime) / 60000
     while (zk.exists("/rate_table/" + diff.toString, true) == null) {
@@ -37,9 +37,12 @@ object main {
       val jObject = JSON.parseObject(jString)
       val irate = BigDecimal(jObject.getBigDecimal(i))
       val rrate = BigDecimal(jObject.getBigDecimal(r))
-      if (irate != BigDecimal(-1) && rrate != BigDecimal(-1))
+      if (irate != BigDecimal(-1) && rrate != BigDecimal(-1)) {
+        zk.close()
         return irate / rrate
+      }
     }
+    zk.close()
     return -1
   }
 
